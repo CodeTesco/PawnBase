@@ -31,11 +31,20 @@ ROBOTSTXT_OBEY = True
 
 # Concurrency and throttling settings
 #CONCURRENT_REQUESTS = 16
-CONCURRENT_REQUESTS_PER_DOMAIN = 1
-DOWNLOAD_DELAY = 1
+CONCURRENT_REQUESTS_PER_DOMAIN = 10
+DOWNLOAD_DELAY = 0.25
+DOWNLOAD_TIMEOUT = 5
+AUTOTHROTTLE_ENABLED = False
+RETRY_ENABLED = False
+# AUTOTHROTTLE_START_DELAY = 0.15
+# AUTOTHROTTLE_MAX_DELAY = 3
+# AUTOTHROTTLE_TARGET_CONCURRENCY = 2.0
 
 # Disable cookies (enabled by default)
-#COOKIES_ENABLED = False
+COOKIES_ENABLED = False
+
+REDIRECT_ENABLED = False
+AJAXCRAWL_ENABLED = True
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
@@ -66,9 +75,9 @@ DOWNLOAD_DELAY = 1
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "pawnSpider.pipelines.PawnspiderPipeline": 300,
-#}
+ITEM_PIPELINES = {
+   "pawnSpider.pipelines.PawnspiderPipeline": 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

@@ -16,5 +16,6 @@ class TourneyItem(scrapy.Item):
     tournament_id = scrapy.Field()
     tourney_name = scrapy.Field()
     date = scrapy.Field()
-    time_control = scrapy.Field()
+    base_minutes = scrapy.Field()
+    increment_seconds = scrapy.Field()
 

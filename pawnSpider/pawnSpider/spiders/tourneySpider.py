@@ -1,14 +1,14 @@
 import re
 from scrapy import Request, Spider, FormRequest
-from form2request import form2request
 from pawnSpider.items import TourneyItem
-from scrapy_playwright.page import PageMethod
+from .utils import clean_date, clean_tc
+# from form2request import form2request
 
 class TourneySpider(Spider):
     name = "tourneySpider"
     allowed_domains = ["s1.chess-results.com"]
-    start_id = 1483442
-    stop_id = 1483452
+    start_id = 1350000
+    stop_id = 1350100
     # start_urls = [f"https://s1.chess-results.com/tnr{start_id}.aspx?lan=1&flag=30&turdet=YES&SNode=S0"]
 
     def _requests(self):
@@ -23,8 +23,8 @@ class TourneySpider(Spider):
         for request in self._requests():
             yield request
 
-    def start_requests(self):
-        yield from self._requests()
+    # def start_requests(self):
+    #     yield from self._requests()
 
     def parse(self, response):
         gate_button = response.css("input#cb_alleDetails")
@@ -40,19 +40,25 @@ class TourneySpider(Spider):
 
     def parse_data(self, response):
         try: 
-            tournament_id = response.xpath("//td[text()='FIDE-Event-ID']/following-sibling::td/a/text()").extract_first()
+            tournament_id = response.xpath("//td[text()='FIDE-Event-ID']/following-sibling::td/a/text()").get()
+            if not tournament_id:
+                tournament_match = re.search(r"/tnr(\d+)\.aspx", response.url)
+                tournament_id = tournament_match.group(1) if tournament_match else None
             tourney_name = response.css("h2::text").get()
             date = response.xpath("//td[@class='CR' and text()='Date']/following-sibling::td/text()").get()
             time_control = response.xpath("//td[@class='CR' and contains(text(), 'Time control')]/following-sibling::td/text()").get()
-            time_control = time_control[:10] if time_control else None
+            base_mins, inc_sec = clean_tc(time_control)
+            date = clean_date(date)
             print(f"Tourney Name: {tourney_name}")
             print(f"Tournament ID: {tournament_id}")
-            print(f"TC: {time_control}\n")
+            print(f"TC: {base_mins}mins + {inc_sec}secs")
+            print(f"Date: {date}\n")
             yield TourneyItem(
                 tournament_id=tournament_id,
                 tourney_name=tourney_name,
                 date=date,
-                time_control=time_control,
+                base_minutes=base_mins,
+                increment_seconds=inc_sec
             )
         except Exception as e:
             print(f"Second: {e}")
