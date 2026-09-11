@@ -26,7 +26,7 @@ class PawnspiderPipeline:
     def process_item(self, item, spider):
         if isinstance(item, TourneyItem):
             insert_query = """
-                insert into tournaments (tournament_id, tourney_name, date, base_minutes, increment_seconds) values (%s, %s, %s, %s, %s)
+                insert into tournaments (tournament_id, tourney_name, date, location, base_minutes, increment_seconds) values (%s, %s, %s, %s, %s, %s)
                 on conflict (tournament_id) do nothing
             """
             try:
@@ -34,6 +34,7 @@ class PawnspiderPipeline:
                     item.get("tournament_id"),
                     item.get("tourney_name"),
                     item.get("date"),
+                    item.get("location"),
                     item.get("base_minutes"),
                     item.get("increment_seconds")
                 ))
