@@ -11,6 +11,8 @@ class PlayerItem(scrapy.Item):
     title = scrapy.Field()
     standard_rating = scrapy.Field()
     blitz_rating = scrapy.Field()
+    gender = scrapy.Field()
+    rapid_rating = scrapy.Field()
     
 class TourneyItem(scrapy.Item):
     tournament_id = scrapy.Field()

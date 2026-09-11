@@ -7,8 +7,8 @@ from .utils import clean_date, clean_tc
 class TourneySpider(Spider):
     name = "tourneySpider"
     allowed_domains = ["s1.chess-results.com"]
-    start_id = 1351000
-    stop_id = 1400000
+    start_id = 1350000
+    stop_id = 1353000
     # start_urls = [f"https://s1.chess-results.com/tnr{start_id}.aspx?lan=1&flag=30&turdet=YES&SNode=S0"]
 
     def _requests(self):
@@ -40,11 +40,9 @@ class TourneySpider(Spider):
 
     def parse_data(self, response):
         try: 
-            tournament_id = response.xpath("//td[text()='FIDE-Event-ID']/following-sibling::td/a/text()").get()
-
-            if not tournament_id:
-                tournament_match = re.search(r"/tnr(\d+)\.aspx", response.url)
-                tournament_id = tournament_match.group(1) if tournament_match else None
+            # tournament_id = response.xpath("//td[text()='FIDE-Event-ID']/following-sibling::td/a/text()").get()
+            tournament_match = re.search(r"/tnr(\d+)\.aspx", response.url)
+            tournament_id = tournament_match.group(1) if tournament_match else None
 
             tourney_name = response.css("h2::text").get()
             date = response.xpath("//td[@class='CR' and text()='Date']/following-sibling::td/text()").get()
