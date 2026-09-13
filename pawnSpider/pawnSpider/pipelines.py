@@ -42,8 +42,32 @@ class PawnspiderPipeline:
             except psycopg2.Error as e:
                 spider.logger.error(f"Database Error: {e}")
                 self.connection.rollback()
+        elif isinstance(item, PlayerItem):
+            insert_query = """
+                insert into players (player_id, name, title, standard_rating, blitz_rating, gender, rapid_rating) values (%s, %s, %s, %s, %s, %s, %s)
+                on conflict (player_id)
+                do update set
+                name = excluded.name,
+                title = coalesce(excluded.title, players.title),
+                standard_rating = coalesce(excluded.standard_rating, players.standard_rating),
+                blitz_rating = coalesce(excluded.blitz_rating, players.blitz_rating);
+            """
+            try:
+                self.cursor.execute(insert_query, (
+                    item.get("player_id"),
+                    item.get("name"),
+                    item.get("title"),
+                    item.get("standard_rating"),
+                    item.get("blitz_rating"),
+                    item.get("gender"),
+                    item.get("rapid_rating")
+                ))
+                self.connection.commit()
+            except psycopg2.Error as e:
+                spider.logger.error(f"Database Error; {e}")
+                self.connection.rollback()
         else:
-            pass
+            return
 
         return item
 
