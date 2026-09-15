@@ -112,13 +112,6 @@ class PlayerSpider(Spider):
             gender_text = get_cell_data(["sex", "gender"])
             gender = "Female" if gender_text else "Male"
 
-            # print(name)
-            # print(title)
-            # print(player_id)
-            # print(f"{standard_rating} {rapid_rating} {blitz_rating}")
-            # print(gender)
-            # print("")
-
             yield PlayerItem(
                 player_id=player_id,
                 name=name,

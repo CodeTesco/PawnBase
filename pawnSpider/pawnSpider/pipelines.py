@@ -6,7 +6,7 @@
 
 # useful for handling different item types with a single interface
 import psycopg2
-from pawnSpider.items import TourneyItem, PlayerItem
+from pawnSpider.items import TourneyItem, PlayerItem, MatchItem
 
 class PawnspiderPipeline:
     def open_spider(self, spider):
@@ -66,8 +66,27 @@ class PawnspiderPipeline:
             except psycopg2.Error as e:
                 spider.logger.error(f"Database Error; {e}")
                 self.connection.rollback()
-        else:
-            return
+        elif isinstance(item, MatchItem):
+            insert_query = """
+                INSERT INTO matches (match_id, tournament_id, white_id,black_id, result, white_rtg, black_rtg)
+                VALUES (
+                    %s, %s, %s, %s, %s, %s, %s
+                ) ON CONFLICT DO NOTHING;
+            """
+            try:
+                self.cursor.execute(insert_query, (
+                    item.get("match_id"),
+                    item.get("tournament_id"),
+                    item.get("white_id"),
+                    item.get("black_id"),
+                    item.get("result"),
+                    item.get("white_rtg"),
+                    item.get("black_rtg")
+                ))
+                self.connection.commit()
+            except psycopg2.Error as e:
+                spider.logger.error(f"Database Error: {e}")
+                self.connection.rollback()
 
         return item
 

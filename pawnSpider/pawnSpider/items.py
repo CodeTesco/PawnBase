@@ -22,3 +22,12 @@ class TourneyItem(scrapy.Item):
     base_minutes = scrapy.Field()
     increment_seconds = scrapy.Field()
 
+class MatchItem(scrapy.Item):
+    match_id = scrapy.Field()
+    tournament_id = scrapy.Field()
+    white_id = scrapy.Field()
+    black_id = scrapy.Field()
+    result = scrapy.Field()
+    white_rtg = scrapy.Field()
+    black_rtg = scrapy.Field()
+
