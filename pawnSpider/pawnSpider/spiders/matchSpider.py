@@ -15,23 +15,24 @@ class matchSpider(Spider):
             password="codetesco"
         )
         cursor = conn.cursor()
+        cursor.execute("select tournament_id from tournaments")
+        tournament_ids = [row[0] for row in cursor.fetchall()]
+        cursor.execute("SELECT name, player_id FROM players")
+        name_to_id = {name: player_id for name, player_id in cursor.fetchall()}
+        cursor.close()
+        conn.close()
 
-        try:
-            cursor.execute("select tournament_id from tournaments")
-            tournament_id = cursor.fetchall()
-
-            for (t_id,) in tournament_id:
-                url = f"https://s1.chess-results.com/tnr{t_id}.aspx?lan=1&art=2&rd=1&turdet=YES&flag=30&SNode=S0"
-                yield Request(url, callback=self.parse_items, cb_kwargs={"t_id": t_id, "round": 1})
-        finally:
-            cursor.close()
-            conn.close()
+        for t_id in tournament_ids[208:]:
+            url = f"https://s1.chess-results.com/tnr{t_id}.aspx?lan=1&art=2&rd=1&turdet=YES&flag=30&SNode=S0"
+            yield Request(url, callback=self.parse_items, cb_kwargs={"t_id": t_id, "round": 1, "name_to_id": name_to_id})
 
     async def start(self):
         for request in self._requests():
             yield request
 
-    def parse_items(self, response, t_id, round):
+    def parse_items(self, response, t_id, round, name_to_id):
+        if round > 3:
+            return
         table = response.xpath("//table[contains(@class, 'CRs1')][1]")
         if not table:
             self.logger.info(f"Tournament {t_id} finished at round {round - 1}")
@@ -57,6 +58,11 @@ class matchSpider(Spider):
         player_rows = table.xpath(".//tr[td]")
         players = player_rows[1:]
 
+        if "team" in col_map:
+            return
+        print(col_map)
+        print(t_id)
+
         for index, player in enumerate(players):
             cells = player.xpath("./td")
 
@@ -70,36 +76,17 @@ class matchSpider(Spider):
 
             white = get_cell_data(["white"])
             black = get_cell_data(["black"])
+
             white_rtg = get_cell_data(["white_rating"])
             white_rtg = int(white_rtg) if white_rtg else None
+
             black_rtg = get_cell_data(["black_rating"])
             black_rtg = int(black_rtg) if black_rtg else None
+
             result = get_cell_data(["result"])
-            white_id = None
-            black_id = None
 
-            try:
-                conn = psycopg2.connect(
-                    database="pawnbase",
-                    user="postgres",
-                    password="codetesco",
-                    host="localhost",
-                    port="5432"
-                )
-                cursor = conn.cursor()
-
-                white_query = f"select player_id from players where name = '{white}'"
-                black_query = f"select player_id from players where name = '{black}'"
-                cursor.execute(white_query)
-                white_id = cursor.fetchone()
-                white_id = white_id[0] if white_id else None
-                cursor.execute(black_query)
-                black_id = cursor.fetchone()
-                black_id = black_id[0] if black_id else None
-
-            finally:
-                cursor.close()
-                conn.close()
+            white_id = name_to_id.get(white)
+            black_id = name_to_id.get(black)
 
             match_id = f"{t_id}_R{round}_B{index+1}"
             # print(match_id)
@@ -120,9 +107,11 @@ class matchSpider(Spider):
                 black_rtg=black_rtg
             )
 
+            # stopped at 2000
+
 
         next_url = f"https://s1.chess-results.com/tnr{t_id}.aspx?lan=1&art=2&rd={round+1}&turdet=YES&flag=30&SNode=S0"
-        yield Request(url=next_url, callback=self.parse_items, cb_kwargs={"t_id": t_id, "round": (round+1)})
+        yield Request(url=next_url, callback=self.parse_items, cb_kwargs={"t_id": t_id, "round": (round+1), "name_to_id": name_to_id})
 
 
 
