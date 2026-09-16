@@ -2,18 +2,13 @@ from scrapy import Spider, Request
 import psycopg2
 import re
 from pawnSpider.items import MatchItem
+from pawnSpider.config import DATABASE_CONFIG
 
 class matchSpider(Spider):
     name="matchSpider"
 
     def _requests(self):
-        conn = psycopg2.connect(
-            host="localhost",
-            database="pawnbase",
-            port="5432",
-            user="postgres",
-            password="codetesco"
-        )
+        conn = psycopg2.connect(**DATABASE_CONFIG)
         cursor = conn.cursor()
         cursor.execute("select tournament_id from tournaments")
         tournament_ids = [row[0] for row in cursor.fetchall()]
@@ -22,7 +17,7 @@ class matchSpider(Spider):
         cursor.close()
         conn.close()
 
-        for t_id in tournament_ids[208:]:
+        for t_id in tournament_ids[2000:]:
             url = f"https://s1.chess-results.com/tnr{t_id}.aspx?lan=1&art=2&rd=1&turdet=YES&flag=30&SNode=S0"
             yield Request(url, callback=self.parse_items, cb_kwargs={"t_id": t_id, "round": 1, "name_to_id": name_to_id})
 

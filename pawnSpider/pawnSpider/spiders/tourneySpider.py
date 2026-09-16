@@ -2,14 +2,12 @@ import re
 from scrapy import Request, Spider, FormRequest
 from pawnSpider.items import TourneyItem
 from .utils import clean_date, clean_tc
-# from form2request import form2request
 
 class TourneySpider(Spider):
     name = "tourneySpider"
     allowed_domains = ["s1.chess-results.com"]
     start_id = 1350000
     stop_id = 1353000
-    # start_urls = [f"https://s1.chess-results.com/tnr{start_id}.aspx?lan=1&flag=30&turdet=YES&SNode=S0"]
 
     def _requests(self):
         for id in range(self.start_id, self.stop_id):
@@ -22,9 +20,6 @@ class TourneySpider(Spider):
     async def start(self):
         for request in self._requests():
             yield request
-
-    # def start_requests(self):
-    #     yield from self._requests()
 
     def parse(self, response):
         gate_button = response.css("input#cb_alleDetails")
@@ -53,8 +48,6 @@ class TourneySpider(Spider):
 
             print(f"Tourney Name: {tourney_name}")
             print(f"Tournament ID: {tournament_id}")
-            # print(f"TC: {base_mins}mins + {inc_sec}secs")
-            # print(f"Date: {date}\n")
 
             yield TourneyItem(
                 tournament_id=tournament_id,

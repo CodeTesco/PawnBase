@@ -7,16 +7,11 @@
 # useful for handling different item types with a single interface
 import psycopg2
 from pawnSpider.items import TourneyItem, PlayerItem, MatchItem
+from pawnSpider.config import DATABASE_CONFIG
 
 class PawnspiderPipeline:
     def open_spider(self, spider):
-        self.connection = psycopg2.connect(
-            host="localhost",
-            database="pawnbase",
-            user="postgres",
-            password="codetesco",
-            port="5432"
-        )
+        self.connection = psycopg2.connect(**DATABASE_CONFIG)
         self.cursor = self.connection.cursor()
 
     def close_spider(self, spider):

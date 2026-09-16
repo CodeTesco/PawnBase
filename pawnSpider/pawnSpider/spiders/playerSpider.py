@@ -1,18 +1,13 @@
 from scrapy import Spider, Request
 import psycopg2
 from pawnSpider.items import PlayerItem
+from pawnSpider.config import DATABASE_CONFIG
 
 class PlayerSpider(Spider):
     name="playerSpider"
 
     def _requests(self):
-        connection = psycopg2.connect(
-            database="pawnbase",
-            user="postgres",
-            host="localhost",
-            password="codetesco",
-            port="5432"
-        )
+        connection = psycopg2.connect(**DATABASE_CONFIG)
         cursor = connection.cursor()
         try:
             query = "select tournament_id, base_minutes from tournaments"
